@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { BOOKS } from '../data/books';
 
@@ -36,12 +36,19 @@ function coverTexture(book) {
   return tex;
 }
 
-const LAYOUT = [
-  { pos: [-3.1, 0.5, -0.4], rot: [0.1, 0.5, -0.12], speed: 0.9, scale: 1.0 },
-  { pos: [-1.5, -0.9, 0.8], rot: [-0.05, 0.35, 0.08], speed: 1.2, scale: 1.1 },
-  { pos: [0.1, 0.55, 0.2], rot: [0.08, -0.2, 0.05], speed: 0.8, scale: 1.25 },
-  { pos: [1.7, -0.75, 0.9], rot: [-0.1, -0.4, -0.06], speed: 1.1, scale: 1.05 },
-  { pos: [3.1, 0.6, -0.5], rot: [0.05, -0.55, 0.14], speed: 1.0, scale: 1.0 },
+// Two arrangements so the books never sit behind the headline:
+//  - flank: wide canvas behind the text, books pushed out to both sides, centre left clear
+//  - row:   canvas is a band below the text, books in a row
+const FLANK = [
+  { id: 'midnight-hour', pos: [-6.1, 0.7, -0.4], rot: [0.1, 0.5, -0.12], speed: 0.9, scale: 1.0 },
+  { id: 'beneath-the-stars', pos: [-4.7, -0.7, 0.6], rot: [-0.05, 0.35, 0.08], speed: 1.2, scale: 1.1 },
+  { id: 'joy-of-minimalism', pos: [4.7, -0.6, 0.6], rot: [-0.1, -0.4, -0.06], speed: 1.1, scale: 1.1 },
+  { id: 'final-frontier', pos: [6.1, 0.7, -0.4], rot: [0.05, -0.55, 0.14], speed: 1.0, scale: 1.0 },
+];
+const ROW = [
+  { id: 'beneath-the-stars', pos: [-1.7, -0.15, 0], rot: [0.05, 0.4, -0.08], speed: 1.1, scale: 1.0 },
+  { id: 'joy-of-minimalism', pos: [0, 0.1, 0.4], rot: [0.04, 0, 0.02], speed: 0.9, scale: 1.12 },
+  { id: 'final-frontier', pos: [1.7, -0.15, 0], rot: [0.05, -0.4, 0.08], speed: 1.2, scale: 1.0 },
 ];
 
 function FloatingBook({ book, pos, rot, speed, scale, index }) {
@@ -105,12 +112,37 @@ function Particles() {
   );
 }
 
-export default function Hero3D() {
-  const picks = useMemo(() => {
-    const order = ['midnight-hour', 'beneath-the-stars', 'joy-of-minimalism', 'final-frontier', 'lost-kitten'];
-    return order.map((id) => BOOKS.find((b) => b.id === id));
-  }, []);
+function Scene() {
+  const width = useThree((s) => s.viewport.width);
+  // Flanking only works when the canvas is much wider than the text column.
+  const flank = width >= 11;
+  const layout = flank ? FLANK : ROW;
+  // Squeeze the arrangement to fit the canvas so nothing is cropped on small screens.
+  const fit = flank ? Math.min(1, width / 14) : Math.min(1.15, width / 4.6);
 
+  return (
+    <>
+      <ambientLight intensity={0.9} />
+      <directionalLight position={[3, 4, 5]} intensity={2.2} />
+      <pointLight position={[-4, -2, 3]} intensity={18} color="#be95ff" />
+      <pointLight position={[4, 2, 2]} intensity={14} color="#78a9ff" />
+      {layout.map((l, i) => (
+        <FloatingBook
+          key={l.id}
+          book={BOOKS.find((b) => b.id === l.id)}
+          index={i}
+          pos={[l.pos[0] * fit, l.pos[1], l.pos[2]]}
+          rot={l.rot}
+          speed={l.speed}
+          scale={l.scale * (flank ? 1 : fit)}
+        />
+      ))}
+      <Particles />
+    </>
+  );
+}
+
+export default function Hero3D() {
   return (
     <Canvas
       dpr={[1, 1.75]}
@@ -118,14 +150,7 @@ export default function Hero3D() {
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       aria-hidden="true"
     >
-      <ambientLight intensity={0.9} />
-      <directionalLight position={[3, 4, 5]} intensity={2.2} />
-      <pointLight position={[-4, -2, 3]} intensity={18} color="#be95ff" />
-      <pointLight position={[4, 2, 2]} intensity={14} color="#78a9ff" />
-      {picks.map((b, i) => (
-        <FloatingBook key={b.id} book={b} index={i} {...LAYOUT[i]} />
-      ))}
-      <Particles />
+      <Scene />
     </Canvas>
   );
 }
