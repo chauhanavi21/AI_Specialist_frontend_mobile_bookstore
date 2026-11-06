@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { cardNumber, cvv, email, expiry, formatCard, formatExpiry, luhn, phone, pin, upi, validate } from './validators';
+import {
+  caretAfterDigits, cardNumber, cvv, email, expiry, formatCard, formatExpiry, luhn, phone, pin, upi, validate,
+} from './validators';
 
 describe('validators', () => {
   it('validates e-mail, phone and pin', () => {
@@ -39,6 +41,14 @@ describe('validators', () => {
     expect(formatCard('42ab')).toBe('42');
     expect(formatExpiry('112030')).toBe('11/2030');
     expect(formatExpiry('1')).toBe('1');
+  });
+
+  it('keeps the caret on the same digit after reformatting', () => {
+    expect(caretAfterDigits('4242 4', 5)).toBe(6); // typed a digit that pulled in a space
+    expect(caretAfterDigits('4424 2424', 2)).toBe(2); // edit in the middle stays put
+    expect(caretAfterDigits('4242 4242', 4)).toBe(4); // just before a space
+    expect(caretAfterDigits('4242', 0)).toBe(0);
+    expect(caretAfterDigits('42', 9)).toBe(2); // past the end clamps
   });
 
   it('collects only the failing fields', () => {

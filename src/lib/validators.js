@@ -59,6 +59,19 @@ export function validate(values, rules) {
 export const formatCard = (v) =>
   String(v).replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
 
+/**
+ * Where the caret should sit in `formatted` so it stays after the same number of digits it was
+ * after in the raw text. Without this, reformatting while typing sends the caret to the end.
+ */
+export function caretAfterDigits(formatted, digitsBefore) {
+  if (digitsBefore <= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i < formatted.length; i++) {
+    if (/\d/.test(formatted[i]) && ++seen === digitsBefore) return i + 1;
+  }
+  return formatted.length;
+}
+
 /** Formats raw input as "MM/YYYY". */
 export function formatExpiry(v) {
   const d = String(v).replace(/\D/g, '').slice(0, 6);
