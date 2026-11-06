@@ -60,7 +60,11 @@ export default function Modal({ open, onClose, title, children, size = 'max-w-lg
             aria-label={title}
             initial={variant === 'sheet' ? { y: '100%' } : { opacity: 0, y: 30, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={variant === 'sheet' ? { y: '100%' } : { opacity: 0, y: 20, scale: 0.96 }}
+            exit={
+              variant === 'sheet'
+                ? { y: '100%', transition: { duration: 0.2, ease: 'easeIn' } }
+                : { opacity: 0, y: 20, scale: 0.96, transition: { duration: 0.15, ease: 'easeIn' } }
+            }
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
             className={`relative w-full ${size} glass border border-line shadow-2xl max-h-[92vh] overflow-y-auto`}
           >
