@@ -3,16 +3,47 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* Theme tokens as space-separated RGB channels (consumed by tailwind.config.js). */
+  :root,
+  :root[data-theme='dark'] {
     color-scheme: dark;
+    --c-canvas: 22 22 22;
+    --c-nav: 15 15 15;
+    --c-layer: 38 38 38;
+    --c-layer2: 57 57 57;
+    --c-line: 64 64 64;
+    --c-line2: 141 141 141;
+    --c-fg: 244 244 244;
+    --c-fg2: 198 198 198;
+    --c-fg3: 168 168 168;
+    --c-link: 120 169 255;
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --c-canvas: 244 244 244;
+    --c-nav: 255 255 255;
+    --c-layer: 255 255 255;
+    --c-layer2: 233 233 233;
+    --c-line: 211 211 211;
+    --c-line2: 117 117 117;
+    --c-fg: 22 22 22;
+    --c-fg2: 57 57 57;
+    --c-fg3: 82 82 82;
+    --c-link: 15 98 254;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-canvas text-fg antialiased font-sans;
+    transition: background-color 0.35s ease, color 0.35s ease;
   }
 
   :focus-visible {
-    outline: 2px solid #78a9ff;
+    outline: 2px solid rgb(var(--c-link));
     outline-offset: 2px;
   }
 
@@ -20,14 +51,27 @@
     @apply text-link;
   }
 
+  ::selection {
+    background: #0f62fe;
+    color: #fff;
+  }
+
+  /* Slim scrollbars that follow the theme */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-line2)) transparent;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
     }
   }
 }
@@ -35,10 +79,10 @@
 @layer components {
   /* Form fields: filled with a bottom border, as in the checkout wireframe */
   .field {
-    @apply w-full bg-layer2 text-fg placeholder:text-fg3 border-0 border-b border-line2 px-3 py-2.5 text-base sm:text-sm rounded-none;
+    @apply w-full bg-layer2 text-fg placeholder:text-fg3 border-0 border-b border-line2 px-3 py-2.5 text-base sm:text-sm rounded-none transition-colors;
   }
   .field:focus {
-    @apply outline-none border-b-2 border-link;
+    @apply outline-none border-b-2 border-link bg-layer2;
   }
   .field[aria-invalid='true'] {
     @apply border-danger;
@@ -52,16 +96,71 @@
 
   /* Buttons: 44px touch target on mobile, 40px from sm up */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 min-h-[2.75rem] sm:min-h-[2.5rem] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply relative inline-flex items-center justify-center gap-2 px-4 min-h-[2.75rem] sm:min-h-[2.5rem] text-sm font-medium transition duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
   .btn-primary {
     @apply btn bg-brand text-white hover:bg-brand-hover active:bg-brand-active;
   }
+  .btn-primary:not(:disabled):hover {
+    box-shadow: 0 8px 24px -8px rgb(15 98 254 / 0.7);
+  }
   .btn-secondary {
-    @apply btn bg-layer2 text-fg hover:bg-[#4c4c4c] active:bg-[#5e5e5e];
+    @apply btn bg-layer2 text-fg hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn text-fg hover:bg-layer2;
   }
 
   .tag-link {
-    @apply text-link underline text-xs hover:text-white;
+    @apply text-link underline underline-offset-2 text-xs hover:opacity-80;
   }
+
+  .card {
+    @apply bg-layer border border-line/60;
+  }
+
+  /* Frosted panel used over the artwork backgrounds */
+  .glass {
+    background: rgb(var(--c-layer) / 0.82);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  .gradient-text {
+    background: linear-gradient(100deg, #78a9ff 0%, #be95ff 45%, #ff7eb6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply relative overflow-hidden bg-layer2/70;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 animate-shimmer;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(var(--c-fg) / 0.08), transparent);
+  }
+
+  /* Artwork backdrop for payment and confirmation (the wireframes' blue book pattern) */
+  .art-bg {
+    background:
+      radial-gradient(60rem 40rem at 15% 10%, rgb(40 90 170 / 0.55), transparent 60%),
+      radial-gradient(50rem 36rem at 90% 90%, rgb(200 90 40 / 0.35), transparent 60%),
+      linear-gradient(160deg, #0b2a52 0%, #123a6b 55%, #0b2a52 100%);
+  }
+}
+
+/* CSS 3D book used on the product page */
+.book3d-scene {
+  perspective: 1400px;
+}
+.book3d {
+  transform-style: preserve-3d;
+}
+.book3d > * {
+  position: absolute;
+  backface-visibility: hidden;
 }
