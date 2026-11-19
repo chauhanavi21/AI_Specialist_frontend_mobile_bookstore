@@ -46,8 +46,9 @@ export default function Hero() {
       </div>
 
       {scene && (
+        /* Below xl the canvas is a band under the text; from xl it fills the hero and the books flank the text. */
         <motion.div
-          className="absolute inset-0"
+          className="absolute inset-x-0 bottom-0 h-64 xl:inset-0 xl:h-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.2, delay: 0.1 }}
@@ -64,7 +65,7 @@ export default function Hero() {
         variants={stagger(0.12, 0.1)}
         initial="hidden"
         animate="show"
-        className="relative z-10 mx-auto max-w-3xl text-center px-4 pt-16 pb-24 sm:pt-24 sm:pb-36 pointer-events-none"
+        className="relative z-10 mx-auto max-w-3xl text-center px-4 pt-14 pb-72 sm:pt-20 xl:pt-28 xl:pb-40 pointer-events-none"
       >
         <motion.p variants={riseIn} className="text-xs sm:text-sm tracking-[0.3em] uppercase text-fg2">
           The Book Worm online store

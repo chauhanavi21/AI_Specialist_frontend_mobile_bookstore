@@ -128,8 +128,8 @@ export default function CatalogPage() {
         </aside>
 
         <section className="flex-1 min-w-0 p-4">
-          <div className="grid gap-px sm:grid-cols-2 lg:grid-cols-5 mb-6 bg-line/40">
-            <label className="bg-layer px-3 pt-2 pb-1 text-xs text-fg2 sm:col-span-2 lg:col-span-1 focus-within:ring-2 ring-link transition">
+          <div className="grid gap-px grid-cols-2 lg:grid-cols-5 mb-6 bg-line/40">
+            <label className="bg-layer px-3 pt-2 pb-1 text-xs text-fg2 col-span-2 lg:col-span-1 focus-within:ring-2 ring-link transition">
               Search you want to read here
               <span className="relative block">
                 <input

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CreditCard, Loader2, Lock, Smartphone, Wallet } from 'lucide-react';
@@ -9,7 +9,7 @@ import { useOrders } from '../context/OrdersContext';
 import { useToast } from '../context/ToastContext';
 import { inr } from '../lib/format';
 import {
-  cardNumber, cvv, expiry, formatCard, formatExpiry, required, upi, validate,
+  caretAfterDigits, cardNumber, cvv, expiry, formatCard, formatExpiry, required, upi, validate,
 } from '../lib/validators';
 
 const METHODS = [
@@ -62,6 +62,15 @@ export default function PaymentPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const finished = useRef(false);
+  const pendingCaret = useRef(null);
+
+  // Runs synchronously after every commit, before the browser paints or the next key is handled.
+  // (Must stay above the early return below so hooks run in the same order on every render.)
+  useLayoutEffect(() => {
+    const p = pendingCaret.current;
+    if (p && document.activeElement === p.node) p.node.setSelectionRange(p.pos, p.pos);
+    pendingCaret.current = null;
+  });
 
   const [method, setMethod] = useState('credit');
   const [form, setForm] = useState({ number: '', name: '', cvv: '', expiry: '', upiId: '', wallet: WALLETS[0] });
@@ -75,10 +84,21 @@ export default function PaymentPage() {
   }
 
   const set = (field, fmt = (v) => v) => (e) => {
-    setForm({ ...form, [field]: fmt(e.target.value) });
+    const node = e.target;
+    const raw = node.value;
+    const next = fmt(raw);
+    setForm({ ...form, [field]: next });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
-  };
 
+    // Formatters (card spacing, expiry slash) rewrite the text, which would throw the caret to the
+    // end. When the caret was somewhere in the middle, remember which digit it followed and put it
+    // back right after React commits the new value. Ordinary typing (caret at the end) is left alone.
+    const caret = node.selectionStart ?? raw.length;
+    if (next !== raw && caret < raw.length) {
+      const digitsBefore = raw.slice(0, caret).replace(/\D/g, '').length;
+      pendingCaret.current = { node, pos: caretAfterDigits(next, digitsBefore) };
+    }
+  };
   const submit = (e) => {
     e.preventDefault();
     if (busy) return;
