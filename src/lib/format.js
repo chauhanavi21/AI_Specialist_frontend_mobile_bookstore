@@ -12,6 +12,11 @@ export function inr2(value) {
   return full.format(Number(value ?? 0));
 }
 
+/** "6 Nov 2026" from a timestamp or date. */
+export function fullDate(value) {
+  return new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 /** Delivery estimate N days from today, shown as "Mon, 21 Jul". */
 export function deliveryLabel(days = 3) {
   const d = new Date();
